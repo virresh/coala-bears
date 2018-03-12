@@ -7,7 +7,6 @@ from coala_utils.ContextManagers import change_directory
 from coalib.misc.Shell import run_shell_command
 from coalib.results.Result import Result
 from bears.vcs.CommitBear import _CommitBear
-from coalib.settings.FunctionMetadata import FunctionMetadata
 
 
 class GitCommitBear(_CommitBear):
@@ -22,34 +21,6 @@ class GitCommitBear(_CommitBear):
                    r'|[Rr]esolv(?:e[sd]?|ing)'
                    r'|[Ff]ix(?:e[sd]|ing)?')
     }
-
-    @classmethod
-    def get_shortlog_checks_metadata(cls):
-        return FunctionMetadata.from_function(
-            cls.check_shortlog,
-            omit={'self', 'shortlog'})
-
-    @classmethod
-    def get_body_checks_metadata(cls):
-        return FunctionMetadata.from_function(
-            cls.check_body,
-            omit={'self', 'body'})
-
-    @classmethod
-    def get_issue_checks_metadata(cls):
-        return FunctionMetadata.from_function(
-            cls.check_issue_reference,
-            omit={'self', 'body'})
-
-    @classmethod
-    def get_metadata(cls):
-        return FunctionMetadata.merge(
-            FunctionMetadata.from_function(
-                cls.run,
-                omit={'self', 'dependency_results'}),
-            cls.get_shortlog_checks_metadata(),
-            cls.get_body_checks_metadata(),
-            cls.get_issue_checks_metadata())
 
     @classmethod
     def check_prerequisites(cls):
