@@ -5,7 +5,6 @@ import abc
 from coalib.bears.GlobalBear import GlobalBear
 from dependency_management.requirements.PipRequirement import PipRequirement
 from coalib.results.Result import Result
-from coalib.settings.FunctionMetadata import FunctionMetadata
 from coalib.settings.Setting import typed_list
 
 
@@ -27,38 +26,6 @@ class _CommitBear(GlobalBear):
                 'averaged_perceptron_tagger',
             ])
             type(self)._nltk_data_downloaded = True
-
-    @abc.abstractmethod
-    def check_issue_reference():
-        pass
-
-    @classmethod
-    def get_shortlog_checks_metadata(cls):
-        return FunctionMetadata.from_function(
-            cls.check_shortlog,
-            omit={'self', 'shortlog'})
-
-    @classmethod
-    def get_body_checks_metadata(cls):
-        return FunctionMetadata.from_function(
-            cls.check_body,
-            omit={'self', 'body'})
-
-    @classmethod
-    def get_issue_checks_metadata(cls):
-        return FunctionMetadata.from_function(
-            cls.check_issue_reference,
-            omit={'self', 'body'})
-
-    @classmethod
-    def get_metadata(cls):
-        return FunctionMetadata.merge(
-            FunctionMetadata.from_function(
-                cls.run,
-                omit={'self', 'dependency_results'}),
-            cls.get_shortlog_checks_metadata(),
-            cls.get_body_checks_metadata(),
-            cls.get_issue_checks_metadata())
 
     def check_shortlog(self, shortlog,
                        shortlog_length: int=50,
