@@ -31,10 +31,7 @@ class HgCommitBearTest(unittest.TestCase):
             msg = ' '
         with open(HgCommitBearTest.testFile, 'w') as f:
             f.write(msg)
-        HgCommitBearTest.run_hg_command('--config',
-                                        'ui.username="user.email',
-                                        'coala@coala.io"',
-                                        'commit --amend -l ',
+        HgCommitBearTest.run_hg_command('commit -l ',
                                         HgCommitBearTest.testFile)
 
     def changeHgConfig(self, newConfig):
@@ -73,7 +70,11 @@ class HgCommitBearTest(unittest.TestCase):
         self.run_hg_command('init')
         run_shell_command('touch '+HgCommitBearTest.testFile)
         self.run_hg_command('add', HgCommitBearTest.testFile)
+        newConfigFile = ('[ui]\n'
+                         'username = user.email <coala@coala.io>')
+        self.changeHgConfig(newConfigFile)
         self.run_hg_command('commit -m "testInit Commit"')
+
 
     @staticmethod
     def _windows_rmtree_remove_readonly(func, path, excinfo):
