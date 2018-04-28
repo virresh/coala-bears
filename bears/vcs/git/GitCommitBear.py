@@ -6,6 +6,8 @@ import logging
 from urllib.parse import urlparse
 from contextlib import redirect_stdout
 
+from giturlparse import parse
+
 from coalib.bears.GlobalBear import GlobalBear
 from dependency_management.requirements.PipRequirement import PipRequirement
 from coala_utils.ContextManagers import change_directory
@@ -96,10 +98,8 @@ class GitCommitBear(GlobalBear):
             return None
 
         url = remotes[0]
-        if 'git@' in url:
-            netloc = re.findall(r'@(\S+):', url)[0]
-        else:
-            netloc = urlparse(url)[1]
+        url = parse(url)
+        netloc = url.host
         return netloc.split('.')[0]
 
     def run(self,
