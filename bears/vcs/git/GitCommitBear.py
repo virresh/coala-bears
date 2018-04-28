@@ -19,7 +19,7 @@ from coalib.settings.Setting import typed_list
 
 class GitCommitBear(GlobalBear):
     LANGUAGES = {'Git'}
-    REQUIREMENTS = {PipRequirement('nltk', '3.2')}
+    REQUIREMENTS = {PipRequirement('nltk', '3.2') , PipRequirement('giturlparse', '0.9.1')}
     AUTHORS = {'The coala developers'}
     AUTHORS_EMAILS = {'coala-devel@googlegroups.com'}
     LICENSE = 'AGPL-3.0'
