@@ -4,6 +4,7 @@ import shutil
 import os
 import logging
 from contextlib import redirect_stdout
+from string import Template
 
 from giturlparse import parse
 
@@ -269,6 +270,31 @@ class GitCommitBear(GlobalBear):
                                'Commit body lines should not exceed {} '
                                'characters.'.format(body_line_length))
 
+    def initialise_issue_ref_regex(self,
+                                   body_close_issue_full_url,
+                                   result_message,
+                                   host
+                                   ):
+        """
+        Helper function to initialize the kind of issue regex to use
+
+        :param body_close_issue_full_url:
+            Sets the regex to either use full body reference or just number
+        :param result_message:
+            The result message having exactly one variable to fill in
+        :param host:
+            The current repository's host
+        """
+        if body_close_issue_full_url:
+            self.ISSUE_TYPE = 'full issue'
+            self.ISSUE_REF_REGEX = (
+                r'https?://{}\S+/issues/(\S+)'.format(re.escape(host)))
+        else:
+            self.ISSUE_TYPE = 'issue'
+            self.ISSUE_REF_REGEX = r'(?:\w+/\w+)?#(\S+)'
+        result_message[0] = Template(result_message[0]).substitute(
+                                                {'issueType': self.ISSUE_TYPE})
+
     def check_issue_reference(self, body,
                               body_close_issue: bool = False,
                               body_close_issue_full_url: bool = False,
@@ -312,19 +338,15 @@ class GitCommitBear(GlobalBear):
         if body_close_issue_on_last_line:
             if body:
                 body = body.splitlines()[-1]
-            result_message = ('Body of HEAD commit does not contain any {} '
-                              'reference in the last line.')
+            result_message = [('Body of HEAD commit does not contain any '
+                               '${issueType} reference in the last line.')]
         else:
-            result_message = ('Body of HEAD commit does not contain any {} '
-                              'reference.')
+            result_message = [('Body of HEAD commit does not contain any '
+                               '${issueType} reference.')]
 
-        if body_close_issue_full_url:
-            result_info = 'full issue'
-            issue_ref_regex = (
-                r'https?://{}\S+/issues/(\S+)'.format(re.escape(host)))
-        else:
-            result_info = 'issue'
-            issue_ref_regex = r'(?:\w+/\w+)?#(\S+)'
+        self.initialise_issue_ref_regex(body_close_issue_full_url,
+                                        result_message,
+                                        host)
 
         concat_regex = '|'.join(kw for kw in self.CONCATENATION_KEYWORDS)
         compiled_joint_regex = re.compile(
@@ -347,10 +369,10 @@ class GitCommitBear(GlobalBear):
         matches = compiled_joint_regex.findall(body)
 
         if body_enforce_issue_reference and len(matches) == 0:
-            yield Result(self, result_message.format(result_info))
+            yield Result(self, result_message[0])
             return
 
-        compiled_issue_ref_regex = re.compile(issue_ref_regex)
+        compiled_issue_ref_regex = re.compile(self.ISSUE_REF_REGEX)
         compiled_issue_no_regex = re.compile(r'[1-9][0-9]*')
         compiled_concat_regex = re.compile(
             r'\s*(?:{})\s*'.format(concat_regex))
@@ -360,7 +382,7 @@ class GitCommitBear(GlobalBear):
                 reference = compiled_issue_ref_regex.fullmatch(issue)
                 if not reference:
                     yield Result(self, 'Invalid {} reference: '
-                                       '{}'.format(result_info, issue))
+                                       '{}'.format(self.ISSUE_TYPE, issue))
                 elif not compiled_issue_no_regex.fullmatch(reference.group(1)):
                     yield Result(self, 'Invalid issue number: '
                                        '{}'.format(issue))
